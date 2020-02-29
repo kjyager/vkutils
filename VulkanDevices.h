@@ -1,17 +1,14 @@
 #ifndef VULKAN_DEVICES_H_
 #define VULKAN_DEVICES_H_
 #include <vulkan/vulkan.h>
-
-#if __cplusplus >= 201700L
-#include <optional>
-#endif
-
+#include "optional.h"
 #include <vector>
 #include <stdexcept>
 #include <limits>
 
 // If you're getting an error here, it's because you either need to use c++ 17+
 // or provide your own implenation for std::optional, std::nullopt_t, and std::nullopt
+// set VKUTILS_OPTIONAL_SUBSTITUTE preprocessor variable to point to your subtitute include. 
 using _nullopt = std::nullopt_t;
 
 class QueueFamily
