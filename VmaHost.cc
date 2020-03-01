@@ -30,7 +30,11 @@ VmaAllocator VmaHost::_createNewAllocator(const VulkanDeviceHandlePair& aDeviceP
 		createInfo.instance = _mInstance;
         createInfo.device = aDevicePair.device;
         createInfo.physicalDevice = aDevicePair.physicalDevice;
-        createInfo.vulkanApiVersion = VK_API_VERSION_1_1;
+        #ifdef VULKAN_BASE_VK_API_VERSION
+        createInfo.vulkanApiVersion = VULKAN_BASE_VK_API_VERSION;
+        #else
+        createInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+        #endif
     }
 
     VmaAllocator allocator = nullptr;
