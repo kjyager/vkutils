@@ -38,8 +38,37 @@ std::vector<T>& duplicate_extend_vector(std::vector<T>& aVector, size_t extendSi
 
 VkFormat select_depth_format(const VkPhysicalDevice& aPhysDev, const VkFormat& aPreferred = VK_FORMAT_D24_UNORM_S8_UINT, bool aRequireStencil = false);
 
+VkCommandBuffer start_one_off_commands(VkCommandPool aPool);
+VkResult finish_one_off_commands(VkCommandBuffer aCmdBuffer, VkQueue aQueue);
+
 VkShaderModule load_shader_module(const VkDevice& aDevice, const std::string& aFilePath);
 VkShaderModule create_shader_module(const VkDevice& aDevice, const std::vector<uint8_t>& aByteCode, bool silent = false);
+
+class QueueClosure
+{
+ public:
+    QueueClosure(const VulkanDeviceHandlePair& aDevicePair, uint32_t aFamily, VkQueue aQueue)
+    : mQueue(aQueue), mFamilyIdx(aFamily), _mDevicePair(aDevicePair) {}
+
+    ~QueueClosure(){_cleanupSubmit();}
+
+    VkQueue getQueue() const {return(mQueue);}
+    uint32_t getFamily() const {return(mFamilyIdx);}
+    const VulkanDeviceHandlePair& getDevicePair() const {return(_mDevicePair);}
+
+    VkCommandBuffer beginOneSubmitCommands(VkCommandPool aCommandPool = VK_NULL_HANDLE);
+    VkResult finishOneSubmitCommands(const VkCommandBuffer& aCmdBuffer);
+
+ protected:
+    void _cleanupSubmit(const VkCommandBuffer& aCmdBuffer = VK_NULL_HANDLE);
+    VkQueue mQueue = VK_NULL_HANDLE;
+    uint32_t mFamilyIdx;
+
+ private:
+    VulkanDeviceHandlePair _mDevicePair;
+    bool _mCmdPoolInternal = false;
+    VkCommandPool _mCommandPool = VK_NULL_HANDLE;
+};
 
 const static VkSubmitInfo sSingleSubmitTemplate {
     /* sType = */ VK_STRUCTURE_TYPE_SUBMIT_INFO,

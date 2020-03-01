@@ -96,6 +96,62 @@ VkShaderModule create_shader_module(const VkDevice& aDevice, const std::vector<u
     return(resultModule);
 }
 
+VkCommandBuffer QueueClosure::beginOneSubmitCommands(VkCommandPool aCommandPool){
+    // Create a one off command pool internally
+    if(aCommandPool == VK_NULL_HANDLE){
+        _mCmdPoolInternal = true;
+        VkCommandPoolCreateInfo poolCreate = {};
+        poolCreate.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolCreate.queueFamilyIndex = mFamilyIdx;
+        poolCreate.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+        VkResult poolCreateResult = vkCreateCommandPool(_mDevicePair.device, &poolCreate, nullptr, &_mCommandPool);
+        assert(poolCreateResult == VK_SUCCESS);
+        aCommandPool = _mCommandPool;
+    }
+    
+    VkCommandBufferAllocateInfo allocInfo = {};
+    {
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandBufferCount = 1;
+        allocInfo.commandPool = aCommandPool;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    }
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    {
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    }
+
+    VkCommandBuffer cmdBuffer = VK_NULL_HANDLE;
+    assert(vkAllocateCommandBuffers(_mDevicePair.device, &allocInfo, &cmdBuffer) == VK_SUCCESS);
+    assert(vkBeginCommandBuffer(cmdBuffer, &beginInfo) == VK_SUCCESS);
+
+    return(cmdBuffer);
+}
+
+VkResult QueueClosure::finishOneSubmitCommands(const VkCommandBuffer& aCmdBuffer){
+    VkSubmitInfo submission = sSingleSubmitTemplate;
+    submission.commandBufferCount = 1;
+    submission.pCommandBuffers = &aCmdBuffer;
+    
+    VkResult submitResult = vkQueueSubmit(mQueue, 1, &submission, VK_NULL_HANDLE);
+    if(submitResult == VK_SUCCESS) vkQueueWaitIdle(mQueue);
+    _cleanupSubmit(aCmdBuffer);
+    return(submitResult);
+}
+
+void QueueClosure::_cleanupSubmit(const VkCommandBuffer& aCmdBuffer){
+    if(aCmdBuffer != VK_NULL_HANDLE && _mCmdPoolInternal){
+        vkFreeCommandBuffers(_mDevicePair.device, _mCommandPool, 1, &aCmdBuffer);
+    }
+    if(_mCommandPool != VK_NULL_HANDLE){
+        vkDestroyCommandPool(_mDevicePair.device, _mCommandPool, nullptr);
+        _mCommandPool = VK_NULL_HANDLE;
+    }
+    _mCmdPoolInternal = false;
+}
+
 } // end namespace vkutils
 
 
