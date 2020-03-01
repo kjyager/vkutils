@@ -2,15 +2,34 @@
 #ifndef KJY_VKUTILS_OPTIONAL_SUBSTITUTE_H_
 #define KJY_VKUTILS_OPTIONAL_SUBSTITUTE_H_
 
+// Comment out to put substitute optional in the std namespace instead
+#define KJY_OPTSUB_USE_OPT_NAMESPACE
+
 #if __cplusplus >= 201703L
+
 #include <optional>
+
+#ifdef KJY_OPTSUB_USE_OPT_NAMESPACE
+namespace opt{
+
+    template<class _Tp> using optional = std::optional;
+    using nullopt_t = std::nullopt_t;
+    inline constexpr nullopt_t nullopt = std::nullopt;
+    using bad_optional_access = std::bad_optional_access;
+}
+#endif
+
+
 #else
 
 #include <exception>
 #include <cstdint>
 
+#ifdef KJY_OPTSUB_USE_OPT_NAMESPACE
+namespace opt{
+#else
 namespace std{
-
+#endif
 
 struct nullopt_t
 {

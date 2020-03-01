@@ -6,11 +6,6 @@
 #include <stdexcept>
 #include <limits>
 
-// If you're getting an error here, it's because you either need to use c++ 17+
-// or provide your own implenation for std::optional, std::nullopt_t, and std::nullopt
-// set VKUTILS_OPTIONAL_SUBSTITUTE preprocessor variable to point to your subtitute include. 
-using _nullopt = std::nullopt_t;
-
 class QueueFamily
 {
  public:
@@ -92,7 +87,7 @@ class VulkanPhysicalDevice
 
    SwapChainSupportInfo getSwapChainSupportInfo(const VkSurfaceKHR aSurface) const;
 
-   std::optional<uint32_t> getPresentableQueueIndex(const VkSurfaceKHR aSurface) const;
+   opt::optional<uint32_t> getPresentableQueueIndex(const VkSurfaceKHR aSurface) const;
    
    VulkanLogicalDevice createLogicalDevice(
       VkQueueFlags aQueues,
@@ -112,14 +107,14 @@ class VulkanPhysicalDevice
    std::vector<QueueFamily> mQueueFamilies;
    std::vector<VkExtensionProperties> mAvailableExtensions;
 
-   std::optional<uint32_t> mGraphicsIdx;
-   std::optional<uint32_t> mComputeIdx;
-   std::optional<uint32_t> mTransferIdx;
-   std::optional<uint32_t> mProtectedIdx;
-   std::optional<uint32_t> mSparseBindIdx;
+   opt::optional<uint32_t> mGraphicsIdx;
+   opt::optional<uint32_t> mComputeIdx;
+   opt::optional<uint32_t> mTransferIdx;
+   opt::optional<uint32_t> mProtectedIdx;
+   opt::optional<uint32_t> mSparseBindIdx;
 
    // Index of queue supporting graphics, compute, transfer, and presentation
-   std::optional<uint32_t> coreFeaturesIdx; 
+   opt::optional<uint32_t> coreFeaturesIdx; 
 
    operator VkPhysicalDevice() const {return(mHandle);}
 
