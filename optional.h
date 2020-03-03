@@ -12,7 +12,7 @@
 #ifdef KJY_OPTSUB_USE_OPT_NAMESPACE
 namespace opt{
 
-    template<class _Tp> using optional = std::optional;
+    template<class _Tp> using optional = std::optional<_Tp>;
     using nullopt_t = std::nullopt_t;
     inline constexpr nullopt_t nullopt = std::nullopt;
     using bad_optional_access = std::bad_optional_access;

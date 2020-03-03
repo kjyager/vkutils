@@ -131,6 +131,8 @@ VkCommandBuffer QueueClosure::beginOneSubmitCommands(VkCommandPool aCommandPool)
 }
 
 VkResult QueueClosure::finishOneSubmitCommands(const VkCommandBuffer& aCmdBuffer){
+    assert(vkEndCommandBuffer(aCmdBuffer) == VK_SUCCESS);
+    
     VkSubmitInfo submission = sSingleSubmitTemplate;
     submission.commandBufferCount = 1;
     submission.pCommandBuffers = &aCmdBuffer;
