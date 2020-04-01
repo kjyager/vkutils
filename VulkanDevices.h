@@ -92,14 +92,19 @@ class VulkanPhysicalDevice
    VulkanLogicalDevice createLogicalDevice(
       VkQueueFlags aQueues,
       const std::vector<const char*>& aExtensions = std::vector<const char*>(),
+      const VkPhysicalDeviceFeatures& aFeatures = {},
       VkSurfaceKHR aSurface = VK_NULL_HANDLE
    ) const;
 
    VulkanLogicalDevice createCoreDevice() const { return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)); }
 
-   VulkanLogicalDevice createPresentableCoreDevice(VkSurfaceKHR aSurface, const std::vector<const char*>& aExtensions = std::vector<const char*>()) const {
+   VulkanLogicalDevice createPresentableCoreDevice(
+      VkSurfaceKHR aSurface,
+      const std::vector<const char*>& aExtensions = std::vector<const char*>(),
+      const VkPhysicalDeviceFeatures& aFeatures = {}
+   ) const {
       if(aSurface == VK_NULL_HANDLE) throw std::runtime_error("Attempted to create presentable core device with invalid surface handle!");
-      return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, aExtensions, aSurface));
+      return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, aExtensions, aFeatures, aSurface));
    }
 
    VkPhysicalDeviceProperties mProperties;

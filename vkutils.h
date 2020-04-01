@@ -38,6 +38,52 @@ void find_layer_matches(
     std::vector<std::string>& aOutExtList, std::unordered_map<std::string, bool>* aResultMap = nullptr
 );
 
+/// Applies binary function returning bool to each member within VkPhysicalDeviceFeatures.
+///
+/// \param[out] aFeaturesOut Output structure containing result of the operation
+/// \param aBinaryFunc std::function reference for binary function to apply. Must be compatible with with
+///                    `std::function<VkBool32(VkBool32, VkBool32, const char*)>`
+///                    where the final const char* argument is set to the name of the member being operated on
+///                    i.e. (`sparseResidencyBuffer`).
+void boolean_op_phys_device_features(
+    const VkPhysicalDeviceFeatures& a,
+    const VkPhysicalDeviceFeatures& b,
+    VkPhysicalDeviceFeatures& aFeaturesOut,
+    const std::function<VkBool32(VkBool32, VkBool32, const char*)>& aBinaryFunc
+);
+
+/// Determines final set of features to be enabled during logical device creation.
+/// 
+/// \param[in] aAvailable Set of features supported by the physical device
+/// \param[in] aRequired Set of features the caller requires be enabled
+/// \param[in] aRequested Set of features the caller prefers be enabled
+/// \param[out] aFeaturesOut Output set of features consolated from the input sets.
+/// 
+/// \throw std::runtime_error If any features enabled in `aRequired` are not present in `aAvailable`
+inline void find_feature_matches(
+    const VkPhysicalDeviceFeatures& aAvailable,
+    const VkPhysicalDeviceFeatures& aRequired,
+    const VkPhysicalDeviceFeatures& aRequested,
+    VkPhysicalDeviceFeatures& aFeaturesOut
+){
+    std::function requiredAnd = [](VkBool32 a, VkBool32 b, const char* name) -> VkBool32 {
+        if(a && !b){
+            throw std::runtime_error("Error: Feature '" + std::string(name) + "' is required, but not available on the given device!");
+        }
+        return(a);
+    };
+
+    std::function requestedAnd = [](VkBool32 a, VkBool32 b, const char* name) -> VkBool32 {
+        if(a && !b){
+            std::cerr << "Warning: Feature '" << std::string(name) << "' is requested, but not available on the given device!" << std::endl;
+        }
+        return(a);
+    };
+
+    boolean_op_phys_device_features(aRequested, aAvailable, aFeaturesOut, requestedAnd);
+    boolean_op_phys_device_features(aRequired, aAvailable, aFeaturesOut, requiredAnd);
+}
+
 VkPhysicalDevice select_physical_device(const std::vector<VkPhysicalDevice>& aDevices);
 
 template<typename T>
