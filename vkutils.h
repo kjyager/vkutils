@@ -52,6 +52,20 @@ void boolean_op_phys_device_features(
     const std::function<VkBool32(VkBool32, VkBool32, const char*)>& aBinaryFunc
 );
 
+/// Applies unary function returning bool to each member within VkPhysicalDeviceFeatures.
+///
+/// \param[in] aFeaturesIn Input structure
+/// \param[out] aFeaturesOut Output structure for containing result of the operation
+/// \param aUnaryFunc std::function reference for unary function to apply. Must be compatible with with
+///                    `std::function<VkBool32(VkBool32, const char*)>`
+///                    where the final const char* argument is set to the name of the member being operated on
+///                    i.e. (`sparseResidencyBuffer`).
+void unary_op_phys_device_features(
+    const VkPhysicalDeviceFeatures& aFeaturesIn,
+    VkPhysicalDeviceFeatures& aFeaturesOut,
+    const std::function<VkBool32(VkBool32, const char*)>& aUnaryFunc
+);
+
 /// Determines final set of features to be enabled during logical device creation.
 /// 
 /// \param[in] aAvailable Set of features supported by the physical device
