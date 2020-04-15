@@ -8,11 +8,11 @@ QueueFamily::QueueFamily(const VkQueueFamilyProperties& aFamily, uint32_t aIndex
   mFlags(aFamily.queueFlags),
   mMinImageTransferGranularity(aFamily.minImageTransferGranularity),
   mTimeStampValidBits(aFamily.timestampValidBits),
-  mGraphics(aFamily.queueFlags | VK_QUEUE_GRAPHICS_BIT),
-  mCompute(aFamily.queueFlags | VK_QUEUE_COMPUTE_BIT),
-  mTransfer(aFamily.queueFlags | VK_QUEUE_TRANSFER_BIT),
-  mSparseBinding(aFamily.queueFlags | VK_QUEUE_SPARSE_BINDING_BIT),
-  mProtected(aFamily.queueFlags | VK_QUEUE_PROTECTED_BIT)
+  mGraphics(aFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT),
+  mCompute(aFamily.queueFlags & VK_QUEUE_COMPUTE_BIT),
+  mTransfer(aFamily.queueFlags & VK_QUEUE_TRANSFER_BIT),
+  mSparseBinding(aFamily.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT),
+  mProtected(aFamily.queueFlags & VK_QUEUE_PROTECTED_BIT)
 {}
 
 VulkanPhysicalDevice::VulkanPhysicalDevice(VkPhysicalDevice aDevice) : mHandle(aDevice) {
@@ -79,6 +79,34 @@ opt::optional<uint32_t> VulkanPhysicalDevice::getPresentableQueueIndex(const VkS
     return(opt::optional<uint32_t>());
 }
 
+VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(const VkDeviceCreateInfo& aDeviceCreateInfo, const std::optional<uint32_t>& aPresentationIdx) const{
+    VkDevice deviceHandle = VK_NULL_HANDLE;
+    VkResult deviceCreationResult;
+    if((deviceCreationResult = vkCreateDevice(mHandle, &aDeviceCreateInfo, nullptr, &deviceHandle)) != VK_SUCCESS){
+        throw std::runtime_error("Failed to create logical device!");
+    }
+
+    VulkanLogicalDevice device = VulkanLogicalDevice(deviceHandle);
+
+    for(size_t i = 0; i < aDeviceCreateInfo.queueCreateInfoCount; ++i){
+        const VkDeviceQueueCreateInfo& queueInfo = aDeviceCreateInfo.pQueueCreateInfos[i];
+        if(queueInfo.queueFamilyIndex == mGraphicsIdx && device.mGraphicsQueue == VK_NULL_HANDLE) 
+            vkGetDeviceQueue(deviceHandle, *mGraphicsIdx, 0, &device.mGraphicsQueue);
+        if(queueInfo.queueFamilyIndex == mComputeIdx && device.mComputeQueue == VK_NULL_HANDLE) 
+            vkGetDeviceQueue(deviceHandle, *mComputeIdx, 0, &device.mComputeQueue);
+        if(queueInfo.queueFamilyIndex == mTransferIdx && device.mTransferQueue == VK_NULL_HANDLE) 
+            vkGetDeviceQueue(deviceHandle, *mTransferIdx, 0, &device.mTransferQueue);
+        if(queueInfo.queueFamilyIndex == aPresentationIdx && device.mPresentationQueue == VK_NULL_HANDLE) 
+            vkGetDeviceQueue(deviceHandle, *aPresentationIdx, 0, &device.mPresentationQueue);
+        if(queueInfo.queueFamilyIndex == mProtectedIdx && device.mProtectedQueue == VK_NULL_HANDLE) 
+            vkGetDeviceQueue(deviceHandle, *mProtectedIdx, 0, &device.mProtectedQueue);
+        if(queueInfo.queueFamilyIndex == mSparseBindIdx && device.mSparseBindingQueue == VK_NULL_HANDLE) 
+            vkGetDeviceQueue(deviceHandle, *mSparseBindIdx, 0, &device.mSparseBindingQueue);   
+    }
+
+     return(device);
+}
+
 VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(
     VkQueueFlags aQueues,
     const std::vector<const char*>& aExtensions,
@@ -129,21 +157,7 @@ VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(
         createInfo.enabledExtensionCount = static_cast<uint32_t>(aExtensions.size());
     }
 
-    VkDevice deviceHandle = VK_NULL_HANDLE;
-    if(vkCreateDevice(mHandle, &createInfo, nullptr, &deviceHandle) != VK_SUCCESS){
-        throw std::runtime_error("Failed to create device!");
-    }
-
-    VulkanLogicalDevice device = VulkanLogicalDevice(deviceHandle);
-
-    if(mGraphicsIdx) vkGetDeviceQueue(deviceHandle, *mGraphicsIdx, 0, &device.mGraphicsQueue);
-    if(mComputeIdx) vkGetDeviceQueue(deviceHandle, *mComputeIdx, 0, &device.mComputeQueue);
-    if(mTransferIdx) vkGetDeviceQueue(deviceHandle, *mTransferIdx, 0, &device.mTransferQueue);
-    if(presentationIdx) vkGetDeviceQueue(deviceHandle, *presentationIdx, 0, &device.mPresentationQueue);
-    if(mProtectedIdx) vkGetDeviceQueue(deviceHandle, *mProtectedIdx, 0, &device.mProtectedQueue);
-    if(mSparseBindIdx) vkGetDeviceQueue(deviceHandle, *mSparseBindIdx, 0, &device.mSparseBindingQueue);
-
-    return(device);
+    return(createLogicalDevice(createInfo, presentationIdx));
 }
 
 VulkanPhysicalDeviceEnumeration::VulkanPhysicalDeviceEnumeration(const std::vector<VkPhysicalDevice>& aDevices) {

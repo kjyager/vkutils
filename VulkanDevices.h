@@ -96,6 +96,11 @@ class VulkanPhysicalDevice
       VkSurfaceKHR aSurface = VK_NULL_HANDLE
    ) const;
 
+   VulkanLogicalDevice createLogicalDevice(
+      const VkDeviceCreateInfo& aDeviceCreateInfo,
+      const std::optional<uint32_t>& aPresentationIdx = std::nullopt
+   ) const;
+
    VulkanLogicalDevice createCoreDevice() const { return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)); }
 
    VulkanLogicalDevice createPresentableCoreDevice(
