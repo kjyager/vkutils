@@ -98,6 +98,8 @@ inline void find_feature_matches(
     boolean_op_phys_device_features(aRequired, aAvailable, aFeaturesOut, requiredAnd);
 }
 
+uint32_t total_descriptor_count(const std::vector<VkDescriptorPoolSize>& aPoolSizes);
+
 VkPhysicalDevice select_physical_device(const std::vector<VkPhysicalDevice>& aDevices);
 
 template<typename T>

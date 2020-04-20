@@ -96,6 +96,14 @@ VkShaderModule create_shader_module(const VkDevice& aDevice, const std::vector<u
     return(resultModule);
 }
 
+uint32_t total_descriptor_count(const std::vector<VkDescriptorPoolSize>& aPoolSizes){
+    uint32_t sum = 0;
+    for(const VkDescriptorPoolSize& size : aPoolSizes){
+        sum += size.descriptorCount;
+    }
+    return(sum);
+}
+
 VkCommandBuffer QueueClosure::beginOneSubmitCommands(VkCommandPool aCommandPool){
     // Create a one off command pool internally
     if(aCommandPool == VK_NULL_HANDLE){
