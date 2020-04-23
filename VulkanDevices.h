@@ -50,6 +50,7 @@ class VulkanLogicalDevice
 
     inline VkDevice handle() const {return(mHandle);}
     inline bool isValid() const {return(mHandle != VK_NULL_HANDLE);}
+    void invalidate() {mHandle = VK_NULL_HANDLE;}
 
     VkQueue getGraphicsQueue() const {return(mGraphicsQueue);}
     VkQueue getComputeQueue() const {return(mComputeQueue);}
@@ -84,6 +85,7 @@ class VulkanPhysicalDevice
 
    inline VkPhysicalDevice handle() const {return(mHandle);}
    inline bool isValid() const {return(mHandle != VK_NULL_HANDLE);}
+   void invalidate() {mHandle = VK_NULL_HANDLE;}
 
    SwapChainSupportInfo getSwapChainSupportInfo(const VkSurfaceKHR aSurface) const;
 
