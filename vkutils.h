@@ -100,6 +100,19 @@ inline void find_feature_matches(
 
 uint32_t total_descriptor_count(const std::vector<VkDescriptorPoolSize>& aPoolSizes);
 
+/// Merges specialization info specified in `a` with specialization info in `b`.
+///
+/// Ownership of memory created by this function is moved to the caller via a vector of uchars and 
+/// a vector of map entries. The out parameter is filled with the appropraite values, but the return
+/// values must remain in-scope or bad-reads may occur when the pipeline is built.
+/// \returns A pair of vectorors holding the data for the output specialization info. MUST stay in scope
+/// until the pipeline is built. 
+std::pair<std::vector<VkSpecializationMapEntry>, std::vector<uint8_t>> concat_specialization_info(
+    const VkSpecializationInfo& a,
+    const VkSpecializationInfo& b,
+    VkSpecializationInfo& out
+);
+
 VkPhysicalDevice select_physical_device(const std::vector<VkPhysicalDevice>& aDevices);
 
 template<typename T>

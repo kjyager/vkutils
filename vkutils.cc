@@ -104,6 +104,37 @@ uint32_t total_descriptor_count(const std::vector<VkDescriptorPoolSize>& aPoolSi
     return(sum);
 }
 
+std::pair<std::vector<VkSpecializationMapEntry>, std::vector<uint8_t>> concat_specialization_info(
+    const VkSpecializationInfo& a,
+    const VkSpecializationInfo& b,
+    VkSpecializationInfo& out
+){
+    // Allocate new memory for entries and data
+    std::vector<VkSpecializationMapEntry> entries(a.mapEntryCount + b.mapEntryCount);
+    std::vector<uint8_t> data(a.dataSize + b.dataSize);
+
+    // Copy entries and data from info object A. Note the offset at which A's data ends
+    auto tailEntry = std::copy(a.pMapEntries, a.pMapEntries + a.mapEntryCount, entries.begin());
+    auto tailByte = std::copy(reinterpret_cast<const uint8_t*>(a.pData), reinterpret_cast<const uint8_t*>(a.pData) + a.dataSize, data.begin());
+    uint32_t additionalOffset = static_cast<uint32_t>(std::distance(data.begin(), tailByte));
+
+    // Append B's data to the end of the buffer
+    std::copy(reinterpret_cast<const uint8_t*>(b.pData), reinterpret_cast<const uint8_t*>(b.pData) + b.dataSize, tailByte);
+
+    // Append B's map entries to the buffer, updating the offset (into the data vector) along the way
+    auto addOffset = [&](const VkSpecializationMapEntry& entry){
+        return(VkSpecializationMapEntry{entry.constantID, entry.offset + additionalOffset, entry.size});
+    };
+    std::transform(b.pMapEntries, b.pMapEntries + b.mapEntryCount, tailEntry, addOffset);
+
+    out.mapEntryCount = entries.size();
+    out.pMapEntries = entries.data();
+    out.dataSize = data.size();
+    out.pData = data.data();
+
+    return(std::make_pair(std::move(entries), std::move(data)));
+}
+
 VkCommandBuffer QueueClosure::beginOneSubmitCommands(VkCommandPool aCommandPool){
     // Create a one off command pool internally
     if(aCommandPool == VK_NULL_HANDLE){
