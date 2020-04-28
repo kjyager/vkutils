@@ -132,7 +132,7 @@ std::pair<std::vector<VkSpecializationMapEntry>, std::vector<uint8_t>> concat_sp
     out.dataSize = data.size();
     out.pData = data.data();
 
-    return(std::move(std::make_pair(std::move(entries), std::move(data))));
+    return(std::make_pair(std::move(entries), std::move(data)));
 }
 
 VkCommandBuffer QueueClosure::beginOneSubmitCommands(VkCommandPool aCommandPool){
