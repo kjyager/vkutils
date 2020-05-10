@@ -169,15 +169,29 @@ VkCommandBuffer QueueClosure::beginOneSubmitCommands(VkCommandPool aCommandPool)
     return(cmdBuffer);
 }
 
-VkResult QueueClosure::finishOneSubmitCommands(const VkCommandBuffer& aCmdBuffer){
-    ASSERT_VK_SUCCESS(vkEndCommandBuffer(aCmdBuffer) );
+VkResult QueueClosure::finishOneSubmitCommands(const VkCommandBuffer& aCmdBuffer, VkFence aFence, bool aShouldWait){
+    return finishOneSubmitCommands(aCmdBuffer, {}, {}, aFence, aShouldWait);
+}
+
+VkResult QueueClosure::finishOneSubmitCommands(
+    const VkCommandBuffer& aCmdBuffer,
+    const std::vector<VkSemaphore>& aWaitSemaphores,
+    const std::vector<VkSemaphore>& aSignalSemaphores,
+    VkFence aFence,
+    bool aShouldWait
+){
+    ASSERT_VK_SUCCESS(vkEndCommandBuffer(aCmdBuffer));
     
     VkSubmitInfo submission = sSingleSubmitTemplate;
     submission.commandBufferCount = 1;
     submission.pCommandBuffers = &aCmdBuffer;
+    submission.waitSemaphoreCount = static_cast<uint32_t>(aWaitSemaphores.size());
+    submission.pWaitSemaphores = aWaitSemaphores.data();
+    submission.signalSemaphoreCount = static_cast<uint32_t>(aSignalSemaphores.size());
+    submission.pSignalSemaphores = aSignalSemaphores.data();
     
-    VkResult submitResult = vkQueueSubmit(mQueue, 1, &submission, VK_NULL_HANDLE);
-    if(submitResult == VK_SUCCESS) vkQueueWaitIdle(mQueue);
+    VkResult submitResult = vkQueueSubmit(mQueue, 1, &submission, aFence);
+    if(submitResult == VK_SUCCESS && aShouldWait && aFence == VK_NULL_HANDLE) vkQueueWaitIdle(mQueue);
     _cleanupSubmit(aCmdBuffer);
     return(submitResult);
 }

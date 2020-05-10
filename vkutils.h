@@ -136,7 +136,14 @@ class QueueClosure
     const VulkanDeviceHandlePair& getDevicePair() const {return(_mDevicePair);}
 
     VkCommandBuffer beginOneSubmitCommands(VkCommandPool aCommandPool = VK_NULL_HANDLE);
-    VkResult finishOneSubmitCommands(const VkCommandBuffer& aCmdBuffer);
+    VkResult finishOneSubmitCommands(const VkCommandBuffer& aCmdBuffer, VkFence aFence = VK_NULL_HANDLE, bool aShouldWait = true);
+    VkResult finishOneSubmitCommands(
+        const VkCommandBuffer& aCmdBuffer,
+        const std::vector<VkSemaphore>& aWaitSemaphores,
+        const std::vector<VkSemaphore>& aSignalSemaphores,
+        VkFence aFence = VK_NULL_HANDLE,
+        bool aShouldWait = true
+    );
 
  protected:
     void _cleanupSubmit(const VkCommandBuffer& aCmdBuffer = VK_NULL_HANDLE);

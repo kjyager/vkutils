@@ -156,6 +156,14 @@ struct VulkanDeviceBundle
       return(VulkanDeviceHandlePair{logicalDevice.handle(), physicalDevice.handle()});
    }
 
+   /*explicit*/ operator VkPhysicalDevice() const{
+      return(physicalDevice.handle());
+   }
+
+   /*explicit*/ operator VkDevice() const{
+      return(logicalDevice.handle());
+   }
+
    friend bool operator==(const VulkanDeviceBundle& aDeviceBundle, const VulkanDeviceHandlePair& aDevicePair){
       bool logicalMatch = aDeviceBundle.logicalDevice.handle() == aDevicePair.device;
       bool physicalMatch = aDeviceBundle.physicalDevice.handle() == aDevicePair.physicalDevice;
