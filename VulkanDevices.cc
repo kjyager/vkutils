@@ -159,10 +159,3 @@ VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(
 
     return(createLogicalDevice(createInfo, presentationIdx));
 }
-
-VulkanPhysicalDeviceEnumeration::VulkanPhysicalDeviceEnumeration(const std::vector<VkPhysicalDevice>& aDevices) {
-    base_vector::resize(aDevices.size());
-    for(VkPhysicalDevice device : aDevices){
-        base_vector::emplace_back(device);
-    }
-}

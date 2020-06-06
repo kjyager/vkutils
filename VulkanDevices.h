@@ -1,10 +1,10 @@
-#ifndef VULKAN_DEVICES_H_
-#define VULKAN_DEVICES_H_
+#ifndef KJY_VKUTILS_VULKAN_DEVICES_H_
+#define KJY_VKUTILS_VULKAN_DEVICES_H_
 #include <vulkan/vulkan.h>
-#include "optional.h"
 #include <vector>
 #include <stdexcept>
-#include <limits>
+#include "optional.h"
+#include "VulkanResources.h"
 
 class QueueFamily
 {
@@ -15,7 +15,7 @@ class QueueFamily
     inline bool hasCoreQueueSupport() const {return(mGraphics && mCompute && mTransfer);}
     inline bool hasAllQueueSupport() const {return(mGraphics && mCompute && mTransfer && mSparseBinding && mProtected);}
 
-    uint32_t mIndex = std::numeric_limits<uint32_t>::max();
+    uint32_t mIndex = UINT32_MAX;
     uint32_t mCount = 0;
     VkQueueFlags mFlags = 0x0;
     VkExtent3D mMinImageTransferGranularity = VkExtent3D();
@@ -28,28 +28,43 @@ class QueueFamily
     bool mProtected = false;
 };
 
-struct VulkanDeviceHandlePair
+struct VulkanDeviceHandlePair : virtual public VulkanResource<VulkanDeviceHandlePair>
 {
-   VkDevice device = VK_NULL_HANDLE;
-   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice device = VK_NULL_HANDLE;
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
-   VulkanDeviceHandlePair() {}
-   VulkanDeviceHandlePair(VkDevice aDevice, VkPhysicalDevice aPhysDevice) : device(aDevice), physicalDevice(aPhysDevice) {}
+    VulkanDeviceHandlePair() {}
+    VulkanDeviceHandlePair(VkDevice aDevice, VkPhysicalDevice aPhysDevice) : device(aDevice), physicalDevice(aPhysDevice) {}
+    virtual ~VulkanDeviceHandlePair() = default;
 
-   bool isValid() const {return(device != VK_NULL_HANDLE && physicalDevice != VK_NULL_HANDLE);}
-   
-   friend bool operator==(const VulkanDeviceHandlePair& lhs, const VulkanDeviceHandlePair& rhs){return(lhs.device == rhs.device && lhs.physicalDevice == rhs.physicalDevice);}
-   friend bool operator!=(const VulkanDeviceHandlePair& lhs, const VulkanDeviceHandlePair& rhs){return(!operator==(lhs, rhs));}
+    virtual bool isValid() const override {return(device != VK_NULL_HANDLE && physicalDevice != VK_NULL_HANDLE);}
+    virtual VulkanDeviceHandlePair get() override {return *this;}
+    virtual const VulkanDeviceHandlePair& get() const override {return *this;}
+
+    /*explicit*/ operator VkDevice() const{
+        return(device);
+    }
+
+    /*explicit*/ operator VkPhysicalDevice() const{
+        return(physicalDevice);
+    }
+
+    friend bool operator==(const VulkanDeviceHandlePair& lhs, const VulkanDeviceHandlePair& rhs){return(lhs.device == rhs.device && lhs.physicalDevice == rhs.physicalDevice);}
+    friend bool operator!=(const VulkanDeviceHandlePair& lhs, const VulkanDeviceHandlePair& rhs){return(!operator==(lhs, rhs));}
 };
 
-class VulkanLogicalDevice
+class VulkanLogicalDevice : virtual public VulkanResource<VkDevice>
 {
  public:
-
     VulkanLogicalDevice(){}
+    virtual ~VulkanLogicalDevice() = default;
 
+    virtual bool isValid() const override {return(mHandle != VK_NULL_HANDLE);}
+
+    virtual VkDevice get() override {return(mHandle);}
+    virtual const VkDevice& get() const override {return(mHandle);}
     inline VkDevice handle() const {return(mHandle);}
-    inline bool isValid() const {return(mHandle != VK_NULL_HANDLE);}
+
     void invalidate() {mHandle = VK_NULL_HANDLE;}
 
     VkQueue getGraphicsQueue() const {return(mGraphicsQueue);}
@@ -59,7 +74,7 @@ class VulkanLogicalDevice
     VkQueue getProtectedQueue() const {return(mProtectedQueue);}
     VkQueue getPresentationQueue() const {return(mPresentationQueue);}
 
-    operator VkDevice() const {return(mHandle);}
+    inline operator VkDevice() const {return(mHandle);}
 
  protected:
     friend class VulkanPhysicalDevice;
@@ -77,64 +92,70 @@ class VulkanLogicalDevice
 };
 
 struct SwapChainSupportInfo;
-class VulkanPhysicalDevice
+
+class VulkanPhysicalDevice : virtual public VulkanResource<VkPhysicalDevice>
 {
  public:
-   VulkanPhysicalDevice(){}
-   VulkanPhysicalDevice(VkPhysicalDevice aDevice);
+    VulkanPhysicalDevice(){}
+    VulkanPhysicalDevice(VkPhysicalDevice aDevice);
+    virtual ~VulkanPhysicalDevice() = default;
 
-   inline VkPhysicalDevice handle() const {return(mHandle);}
-   inline bool isValid() const {return(mHandle != VK_NULL_HANDLE);}
-   void invalidate() {mHandle = VK_NULL_HANDLE;}
 
-   SwapChainSupportInfo getSwapChainSupportInfo(const VkSurfaceKHR aSurface) const;
+    virtual bool isValid() const override {return(mHandle != VK_NULL_HANDLE);}
+    virtual VkPhysicalDevice get() override {return(mHandle);}
+    virtual const VkPhysicalDevice& get() const override {return(mHandle);}
+    inline VkPhysicalDevice handle() const {return(mHandle);}
 
-   opt::optional<uint32_t> getPresentableQueueIndex(const VkSurfaceKHR aSurface) const;
-   
-   VulkanLogicalDevice createLogicalDevice(
-      VkQueueFlags aQueues,
-      const std::vector<const char*>& aExtensions = std::vector<const char*>(),
-      const VkPhysicalDeviceFeatures& aFeatures = {},
-      VkSurfaceKHR aSurface = VK_NULL_HANDLE
-   ) const;
+    void invalidate() {mHandle = VK_NULL_HANDLE;}
 
-   VulkanLogicalDevice createLogicalDevice(
-      const VkDeviceCreateInfo& aDeviceCreateInfo,
-      const std::optional<uint32_t>& aPresentationIdx = std::nullopt
-   ) const;
+    SwapChainSupportInfo getSwapChainSupportInfo(const VkSurfaceKHR aSurface) const;
 
-   VulkanLogicalDevice createCoreDevice() const { return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)); }
+    opt::optional<uint32_t> getPresentableQueueIndex(const VkSurfaceKHR aSurface) const;
 
-   VulkanLogicalDevice createPresentableCoreDevice(
-      VkSurfaceKHR aSurface,
-      const std::vector<const char*>& aExtensions = std::vector<const char*>(),
-      const VkPhysicalDeviceFeatures& aFeatures = {}
-   ) const {
-      if(aSurface == VK_NULL_HANDLE) throw std::runtime_error("Attempted to create presentable core device with invalid surface handle!");
-      return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, aExtensions, aFeatures, aSurface));
-   }
+    VulkanLogicalDevice createLogicalDevice(
+        VkQueueFlags aQueues,
+        const std::vector<const char*>& aExtensions = std::vector<const char*>(),
+        const VkPhysicalDeviceFeatures& aFeatures = {},
+        VkSurfaceKHR aSurface = VK_NULL_HANDLE
+    ) const;
 
-   VkPhysicalDeviceProperties mProperties;
-   VkPhysicalDeviceFeatures mFeatures;
-   std::vector<QueueFamily> mQueueFamilies;
-   std::vector<VkExtensionProperties> mAvailableExtensions;
+    VulkanLogicalDevice createLogicalDevice(
+        const VkDeviceCreateInfo& aDeviceCreateInfo,
+        const std::optional<uint32_t>& aPresentationIdx = std::nullopt
+    ) const;
 
-   opt::optional<uint32_t> mGraphicsIdx;
-   opt::optional<uint32_t> mComputeIdx;
-   opt::optional<uint32_t> mTransferIdx;
-   opt::optional<uint32_t> mProtectedIdx;
-   opt::optional<uint32_t> mSparseBindIdx;
+    VulkanLogicalDevice createCoreDevice() const { return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)); }
 
-   // Index of queue supporting graphics, compute, transfer, and presentation
-   opt::optional<uint32_t> coreFeaturesIdx; 
+    VulkanLogicalDevice createPresentableCoreDevice(
+        VkSurfaceKHR aSurface,
+        const std::vector<const char*>& aExtensions = std::vector<const char*>(),
+        const VkPhysicalDeviceFeatures& aFeatures = {}
+    ) const {
+        if(aSurface == VK_NULL_HANDLE) throw std::runtime_error("Attempted to create presentable core device with invalid surface handle!");
+        return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, aExtensions, aFeatures, aSurface));
+    }
 
-   operator VkPhysicalDevice() const {return(mHandle);}
+    VkPhysicalDeviceProperties mProperties;
+    VkPhysicalDeviceFeatures mFeatures;
+    std::vector<QueueFamily> mQueueFamilies;
+    std::vector<VkExtensionProperties> mAvailableExtensions;
+
+    opt::optional<uint32_t> mGraphicsIdx;
+    opt::optional<uint32_t> mComputeIdx;
+    opt::optional<uint32_t> mTransferIdx;
+    opt::optional<uint32_t> mProtectedIdx;
+    opt::optional<uint32_t> mSparseBindIdx;
+
+    // Index of queue supporting graphics, compute, transfer, and presentation
+    opt::optional<uint32_t> coreFeaturesIdx; 
+
+    operator VkPhysicalDevice() const {return(mHandle);}
 
  protected:
-   void _initExtensionProps();
-   void _initQueueFamilies();
+    void _initExtensionProps();
+    void _initQueueFamilies();
 
-   VkPhysicalDevice mHandle = VK_NULL_HANDLE;
+    VkPhysicalDevice mHandle = VK_NULL_HANDLE;
 };
 
 struct SwapChainSupportInfo
@@ -145,12 +166,17 @@ struct SwapChainSupportInfo
 };
 
 
-struct VulkanDeviceBundle
+struct VulkanDeviceBundle : virtual public VulkanResource<VulkanDeviceBundle>
 {
    VulkanLogicalDevice logicalDevice;
    VulkanPhysicalDevice physicalDevice;
 
-   bool isValid() const {return(logicalDevice.isValid() && physicalDevice.isValid());}
+   virtual ~VulkanDeviceBundle() = default;
+
+   virtual bool isValid() const override {return(logicalDevice.isValid() && physicalDevice.isValid());}
+
+   virtual VulkanDeviceBundle get() override {return *this;}
+   virtual const VulkanDeviceBundle& get() const override {return *this;}
 
    /*explicit*/ operator VulkanDeviceHandlePair() const{
       return(VulkanDeviceHandlePair{logicalDevice.handle(), physicalDevice.handle()});
@@ -182,15 +208,8 @@ struct VulkanDeviceBundle
    }
 };
 
-class VulkanPhysicalDeviceEnumeration : public std::vector<VulkanPhysicalDevice>
-{
- public:
-    using base_vector = std::vector<VulkanPhysicalDevice>;
 
-    VulkanPhysicalDeviceEnumeration(){}
-    VulkanPhysicalDeviceEnumeration(const std::vector<VkPhysicalDevice>& aDevices);
 
-    using base_vector::operator[];
-};
+using VulkanPhysicalDeviceEnumeration = std::vector<VulkanPhysicalDevice>;
 
 #endif
