@@ -301,7 +301,7 @@ VulkanDepthBundle VulkanBasicRasterPipelineBuilder::autoCreateDepthBuffer(const 
 
     }
 
-    VmaAllocator allocator = VmaHost::getAllocator({aCtorSet.mDevicePair.device, aCtorSet.mDevicePair.physicalDevice});
+    VmaAllocator allocator = vkutils::VmaHost::getAllocator({aCtorSet.mDevicePair.device, aCtorSet.mDevicePair.physicalDevice});
     if(vmaCreateImage(allocator, &imageInfo, &allocInfo, &bundle.depthImage, &bundle.mAllocation, &bundle.mAllocInfo) != VK_SUCCESS){
         throw std::runtime_error("Failed to create depth image!");
     }

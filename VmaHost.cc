@@ -1,5 +1,7 @@
 #include "VmaHost.h"
 
+namespace vkutils{
+
 VmaAllocator VmaHost::_getAllocator(const VulkanDeviceHandlePair& aDevicePair){
     base_map_t::const_iterator finder = this->find(aDevicePair);
     if(finder == this->end()){
@@ -41,3 +43,5 @@ VmaAllocator VmaHost::_createNewAllocator(const VulkanDeviceHandlePair& aDeviceP
     vmaCreateAllocator(&createInfo, &allocator);
     return(allocator);
 }
+
+} // end namespace vkutils

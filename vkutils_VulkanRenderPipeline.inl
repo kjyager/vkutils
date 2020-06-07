@@ -1,3 +1,9 @@
+/** Vulkan rendering pipeline construction set designed to make it easier to configure common rendering pipelines
+ * 
+ *  This .inl file is included inline from vkutils.h, and is enclosed within the vkutils namespace. 
+ * 
+*/
+
 struct VulkanSwapchainBundle
 {
     VkSwapchainKHR swapchain;
@@ -18,7 +24,7 @@ struct VulkanDepthBundle{
     VkFormat format;
 };
 
-class VulkanRenderPipeline
+class VulkanRenderPipeline : virtual public VulkanResource<VkPipeline>
 {
  public:
     /** Default constructor always creates invalid and empty 
@@ -26,7 +32,7 @@ class VulkanRenderPipeline
      */
     VulkanRenderPipeline() = default;
 
-    bool isValid() const {
+    virtual bool isValid() const override {
         return(
             mGraphicsPipeline != VK_NULL_HANDLE &&
             mGraphicsPipeLayout != VK_NULL_HANDLE &&
@@ -37,7 +43,10 @@ class VulkanRenderPipeline
     // Destroy this pipeline and associated Vulkan objects
     void destroy();
 
-    const VkPipeline& handle() const { return(mGraphicsPipeline); }
+    virtual VkPipeline get() override {return mGraphicsPipeline;}
+    virtual const VkPipeline& get() const override {return mGraphicsPipeline;}
+    const VkPipeline& handle() const { return(mGraphicsPipeline);}
+
     const VkPipelineLayout& getLayout() const { return(mGraphicsPipeLayout); }
     const VkRenderPass& getRenderpass() const { return(mRenderPass); }
     const VkViewport& getViewport() const { return(mViewport); }

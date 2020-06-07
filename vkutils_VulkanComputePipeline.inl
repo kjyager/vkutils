@@ -1,15 +1,22 @@
-#include <vulkan/vulkan.h>
+/** Vulkan compute pipeline construction set designed to make it easier to configure compute pipelines
+ * 
+ *  This .inl file is included inline from vkutils.h, and is enclosed within the vkutils namespace. 
+ * 
+*/
 
-class VulkanComputePipeline
+class VulkanComputePipeline : virtual public VulkanResource<VkPipeline>
 {
  public:
     VulkanComputePipeline(){}
     VulkanComputePipeline(VkPipelineLayout aLayout, VkPipeline aPipeline) : mPipeline(aPipeline), mLayout(aLayout) {}
 
+    virtual VkPipeline get() override {return(mPipeline);}
+    virtual const VkPipeline& get() const override {return(mPipeline);}
     VkPipeline handle() const {return(mPipeline);}
+
     VkPipelineLayout getLayout() const {return(mLayout);}
 
-    bool isValid() const {return(_isValid());}
+    virtual bool isValid() const override {return(_isValid());}
 
     void destroy(VkDevice aLogicalDevice); 
 

@@ -3,6 +3,10 @@
 
 #include <vulkan/vulkan.h>
 #include <memory>
+#include <bitset>
+#include <boost/dynamic_bitset.hpp>
+
+namespace vkutils{
 
 using ResTypeID = uint64_t;
 
@@ -31,6 +35,7 @@ class AbstractVulkanResource
 {
  public:
     virtual ResTypeID getResTypeID() const = 0;
+    virtual bool isValid() const = 0;
 
     template<typename T> bool providesResourceType() const {return this->getResTypeID() == res_type_id<T>;}
 };
@@ -42,14 +47,21 @@ template<typename ResourceType>
 class VulkanResource : virtual public AbstractVulkanResource
 {
  public:
-    virtual bool isValid() const = 0;
     virtual ResourceType get() = 0;
     virtual const ResourceType& get() const = 0;
 
     virtual ResTypeID getResTypeID() const override {return res_type_id<ResourceType>;}
 };
 
-using VulkanAbstractResourcePtr = std::shared_ptr<AbstractVulkanResource>;
+/// Meta class representing an undefined resource which is never valid and represents nothing
+class VulkanNullResource : virtual public AbstractVulkanResource
+{
+ public:
+    virtual ResTypeID getResTypeID() const override {return UINT64_MAX;}
+    virtual bool isValid() const override {return false;}
+};
+
+using AbstractVulkanResourcePtr = std::shared_ptr<AbstractVulkanResource>;
 
 template<typename ResourceType>
 using VulkanResourcePtr = std::shared_ptr<VulkanResource<ResourceType>>;
@@ -60,9 +72,9 @@ namespace internal{
     class WrappedVulkanResource : virtual public VulkanResource<ResourceType>
     {
     public:
-        virtual bool isValid() const = 0;
-        virtual ResourceType get() = 0;
-        virtual const ResourceType& get() const = 0;
+        virtual bool isValid() const override {return mIsInitialized;};
+        virtual ResourceType get() override {return mResource;};
+        virtual const ResourceType& get() const override {return mResource;};
     protected:
         bool mIsInitialized = false;
         ResourceType mResource;
@@ -86,5 +98,8 @@ bool isVkHandleType = std::is_trivially_assignable_v<ResourceType, VK_NULL_HANDL
 
 template<typename ResourceType>
 using WrappedVulkanResource = internal::WrappedVulkanResource<ResourceType, isVkHandleType<ResourceType>>; 
+
+
+} // end namespace vkutils
 
 #endif

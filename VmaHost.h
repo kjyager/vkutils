@@ -6,8 +6,8 @@
 #include <functional> 
 
 template<>
-struct std::hash<VulkanDeviceHandlePair>{
-    size_t operator()(const VulkanDeviceHandlePair& aDevicePair) const noexcept{
+struct std::hash<vkutils::VulkanDeviceHandlePair>{
+    size_t operator()(const vkutils::VulkanDeviceHandlePair& aDevicePair) const noexcept{
         return(
             std::hash<VkDevice>()(aDevicePair.device)
             ^
@@ -15,6 +15,8 @@ struct std::hash<VulkanDeviceHandlePair>{
         );
     }
 };
+
+namespace vkutils{
 
 class VmaHost : public std::unordered_map<VulkanDeviceHandlePair, VmaAllocator>
 {
@@ -62,5 +64,7 @@ class VmaHost : public std::unordered_map<VulkanDeviceHandlePair, VmaAllocator>
 
 	VkInstance _mInstance = VK_NULL_HANDLE;
 };
+
+} // end namespace vkutils
 
 #endif

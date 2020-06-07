@@ -6,6 +6,8 @@
 #include "optional.h"
 #include "VulkanResources.h"
 
+namespace vkutils{
+
 class QueueFamily
 {
  public:
@@ -208,8 +210,8 @@ struct VulkanDeviceBundle : virtual public VulkanResource<VulkanDeviceBundle>
    }
 };
 
-
-
 using VulkanPhysicalDeviceEnumeration = std::vector<VulkanPhysicalDevice>;
+
+} // end namespace vkutils
 
 #endif

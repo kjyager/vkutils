@@ -2,6 +2,8 @@
 #include <set>
 #include <algorithm>
 
+namespace vkutils{
+
 QueueFamily::QueueFamily(const VkQueueFamilyProperties& aFamily, uint32_t aIndex) 
 : mIndex(aIndex),
   mCount(aFamily.queueCount),
@@ -159,3 +161,5 @@ VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(
 
     return(createLogicalDevice(createInfo, presentationIdx));
 }
+
+} // end namespace vkutils
