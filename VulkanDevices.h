@@ -116,8 +116,15 @@ class VulkanPhysicalDevice : virtual public VulkanResource<VkPhysicalDevice>
 
     VulkanLogicalDevice createLogicalDevice(
         VkQueueFlags aQueues,
+        const VkPhysicalDeviceFeatures& aFeatures,
         const std::vector<const char*>& aExtensions = std::vector<const char*>(),
-        const VkPhysicalDeviceFeatures& aFeatures = {},
+        VkSurfaceKHR aSurface = VK_NULL_HANDLE
+    ) const;
+
+    VulkanLogicalDevice createLogicalDevice(
+        VkQueueFlags aQueues,
+        const VkPhysicalDeviceFeatures2& aFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, nullptr, {}},
+        const std::vector<const char*>& aExtensions = std::vector<const char*>(),
         VkSurfaceKHR aSurface = VK_NULL_HANDLE
     ) const;
 
@@ -130,11 +137,20 @@ class VulkanPhysicalDevice : virtual public VulkanResource<VkPhysicalDevice>
 
     VulkanLogicalDevice createPresentableCoreDevice(
         VkSurfaceKHR aSurface,
-        const std::vector<const char*>& aExtensions = std::vector<const char*>(),
-        const VkPhysicalDeviceFeatures& aFeatures = {}
+        const VkPhysicalDeviceFeatures& aFeatures,
+        const std::vector<const char*>& aExtensions = std::vector<const char*>()
     ) const {
         if(aSurface == VK_NULL_HANDLE) throw std::runtime_error("Attempted to create presentable core device with invalid surface handle!");
-        return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, aExtensions, aFeatures, aSurface));
+        return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, aFeatures, aExtensions, aSurface));
+    }
+
+    VulkanLogicalDevice createPresentableCoreDevice(
+        VkSurfaceKHR aSurface,
+        const VkPhysicalDeviceFeatures2& aFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, nullptr, {}},
+        const std::vector<const char*>& aExtensions = std::vector<const char*>()
+    ) const {
+        if(aSurface == VK_NULL_HANDLE) throw std::runtime_error("Attempted to create presentable core device with invalid surface handle!");
+        return(createLogicalDevice(VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, aFeatures, aExtensions, aSurface));
     }
 
     VkPhysicalDeviceProperties mProperties;

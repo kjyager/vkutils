@@ -111,8 +111,23 @@ VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(const VkDeviceCrea
 
 VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(
     VkQueueFlags aQueues,
-    const std::vector<const char*>& aExtensions,
     const VkPhysicalDeviceFeatures& aFeatures,
+    const std::vector<const char*>& aExtensions,
+    VkSurfaceKHR aSurface
+) const{
+    VkPhysicalDeviceFeatures2 features2{
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        nullptr,
+        aFeatures
+    };
+    return(createLogicalDevice(aQueues, features2, aExtensions, aSurface));
+}
+
+
+VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(
+    VkQueueFlags aQueues,
+    const VkPhysicalDeviceFeatures2& aFeatures,
+    const std::vector<const char*>& aExtensions,
     VkSurfaceKHR aSurface
 ) const{
     std::set<uint32_t> queueFamilyIndices;
@@ -148,8 +163,8 @@ VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(
     VkDeviceCreateInfo createInfo;
     {
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pNext = nullptr;
-        createInfo.pEnabledFeatures = &aFeatures;
+        createInfo.pNext = &aFeatures;
+        createInfo.pEnabledFeatures = nullptr;
         createInfo.flags = 0;
         createInfo.ppEnabledLayerNames = nullptr;
         createInfo.enabledLayerCount = 0;

@@ -84,17 +84,37 @@ namespace internal{
     class WrappedVulkanResource<ResourceType, true> : virtual public VulkanResource<ResourceType>
     {
     public:
-        virtual bool isValid() const override {return mResource != VK_NULL_HANDLE;};
-        virtual ResourceType get() override {return mResource;}
-        virtual const ResourceType& get() const {return mResource;}
+        using this_t = WrappedVulkanResource<ResourceType, true>;
+
+        WrappedVulkanResource() = default;
+        // WrappedVulkanResource(const ResourceType& aValue) : mResourceHandle(aValue) {}
+
+        virtual bool isValid() const override {return mResourceHandle != VK_NULL_HANDLE;};
+        virtual void invalidate() const {mResourceHandle == VK_NULL_HANDLE;}
+
+        virtual ResourceType get() override {return mResourceHandle;}
+        virtual const ResourceType& get() const {return mResourceHandle;}
+        
+        // ResourceType operator=(const ResourceType& aOther) {mResourceHandle = aOther;}
+        // inline friend bool operator==(const this_t& aLhs, const this_t& aRhs) {return aLhs.mResourceHandle == aRhs.mResourceHandle;}
+        // inline friend bool operator!=(const this_t& aLhs, const this_t& aRhs) {return !(aLhs == aRhs);}
+
+        // inline friend bool operator==(const this_t& aLhs, const ResourceType& aRhs) {return aLhs.mResourceHandle == aRhs;}
+        // inline friend bool operator!=(const this_t& aLhs, const ResourceType& aRhs) {return !(aLhs == aRhs);}
+
+        // inline friend bool operator==(const ResourceType& aLhs, const this_t& aRhs) {return aLhs == aRhs.mResourceHandle;}
+        // inline friend bool operator!=(const ResourceType& aLhs, const this_t& aRhs) {return !(aLhs == aRhs.mResourceHandle);}
+
+        // inline operator ResourceType&() {return mResourceHandle;};
+        // inline operator ResourceType const&() const {return mResourceHandle;};
     protected:
-        ResourceType mResource = VK_NULL_HANDLE;
+        ResourceType mResourceHandle = VK_NULL_HANDLE;
     };
 
 } // end namespace internal
 
 template<typename ResourceType>
-bool isVkHandleType = std::is_trivially_assignable_v<ResourceType, VK_NULL_HANDLE>;
+constexpr bool isVkHandleType = std::conjunction_v<std::is_pointer<ResourceType>, std::is_empty<std::remove_pointer<ResourceType>>>;
 
 template<typename ResourceType>
 using WrappedVulkanResource = internal::WrappedVulkanResource<ResourceType, isVkHandleType<ResourceType>>; 
