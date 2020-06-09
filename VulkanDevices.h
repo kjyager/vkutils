@@ -69,6 +69,7 @@ class VulkanLogicalDevice : virtual public VulkanResource<VkDevice>
 
     void invalidate() {mHandle = VK_NULL_HANDLE;}
 
+    VkQueue getCoreQueue() const {return(mCoreQueue);}
     VkQueue getGraphicsQueue() const {return(mGraphicsQueue);}
     VkQueue getComputeQueue() const {return(mComputeQueue);}
     VkQueue getTransferQueue() const {return(mTransferQueue);}
@@ -85,6 +86,7 @@ class VulkanLogicalDevice : virtual public VulkanResource<VkDevice>
 
     VkDevice mHandle = VK_NULL_HANDLE;
 
+    VkQueue mCoreQueue = VK_NULL_HANDLE;
     VkQueue mGraphicsQueue = VK_NULL_HANDLE;
     VkQueue mComputeQueue = VK_NULL_HANDLE;
     VkQueue mTransferQueue = VK_NULL_HANDLE;

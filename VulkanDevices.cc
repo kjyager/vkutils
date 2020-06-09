@@ -92,6 +92,10 @@ VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(const VkDeviceCrea
 
     for(size_t i = 0; i < aDeviceCreateInfo.queueCreateInfoCount; ++i){
         const VkDeviceQueueCreateInfo& queueInfo = aDeviceCreateInfo.pQueueCreateInfos[i];
+        bool isCoreQueue = queueInfo.queueFamilyIndex == mGraphicsIdx && queueInfo.queueFamilyIndex == mComputeIdx && queueInfo.queueFamilyIndex == mTransferIdx;
+        
+        if(isCoreQueue && device.mCoreQueue == VK_NULL_HANDLE) 
+            vkGetDeviceQueue(deviceHandle, *mGraphicsIdx, 0, &device.mCoreQueue);
         if(queueInfo.queueFamilyIndex == mGraphicsIdx && device.mGraphicsQueue == VK_NULL_HANDLE) 
             vkGetDeviceQueue(deviceHandle, *mGraphicsIdx, 0, &device.mGraphicsQueue);
         if(queueInfo.queueFamilyIndex == mComputeIdx && device.mComputeQueue == VK_NULL_HANDLE) 
