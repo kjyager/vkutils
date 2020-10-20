@@ -115,8 +115,8 @@ std::pair<std::vector<VkSpecializationMapEntry>, std::vector<uint8_t>> concat_sp
 
 VkPhysicalDevice select_physical_device(const std::vector<VkPhysicalDevice>& aDevices);
 
-template<typename T>
-std::vector<T>& duplicate_extend_vector(std::vector<T>& aVector, size_t extendSize);
+/// @brief Returns cstr name of the given VkResult enum value. 
+const char* vk_result_str(VkResult r);
 
 VkFormat select_depth_format(const VkPhysicalDevice& aPhysDev, const VkFormat& aPreferred = VK_FORMAT_D24_UNORM_S8_UINT, bool aRequireStencil = false);
 
@@ -247,24 +247,6 @@ void vkutils::find_layer_matches(
             throw std::runtime_error("Required instance extension " + std::string(layer_name) + " is not available!");
         }
     }
-}
-
-template<typename T>
-std::vector<T>& vkutils::duplicate_extend_vector(std::vector<T>& aVector, size_t extendSize){
-    if(aVector.size() == extendSize) return aVector;
-    assert(extendSize >= aVector.size() && extendSize % aVector.size() == 0);
-
-    size_t duplicationsNeeded = (extendSize / aVector.size()) - 1;
-    aVector.reserve(extendSize);
-    auto origBegin = aVector.begin();
-    auto origEnd = aVector.end(); 
-    for(size_t i = 0; i < duplicationsNeeded; ++i){
-        auto dupBegin = aVector.end();
-        aVector.insert(dupBegin, origBegin, origEnd);
-    }
-
-    assert(aVector.size() == extendSize);
-    return(aVector);
 }
 
 #endif

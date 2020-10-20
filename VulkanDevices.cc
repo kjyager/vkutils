@@ -2,6 +2,8 @@
 #include <set>
 #include <algorithm>
 
+namespace vkutils{const char* vk_result_str(VkResult);}
+
 QueueFamily::QueueFamily(const VkQueueFamilyProperties& aFamily, uint32_t aIndex) 
 : mIndex(aIndex),
   mCount(aFamily.queueCount),
@@ -79,11 +81,13 @@ opt::optional<uint32_t> VulkanPhysicalDevice::getPresentableQueueIndex(const VkS
     return(opt::optional<uint32_t>());
 }
 
+
 VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(const VkDeviceCreateInfo& aDeviceCreateInfo, const std::optional<uint32_t>& aPresentationIdx) const{
     VkDevice deviceHandle = VK_NULL_HANDLE;
     VkResult deviceCreationResult;
     if((deviceCreationResult = vkCreateDevice(mHandle, &aDeviceCreateInfo, nullptr, &deviceHandle)) != VK_SUCCESS){
-        throw std::runtime_error("Failed to create logical device!");
+        std::string failStr = std::string(vkutils::vk_result_str(deviceCreationResult));
+        throw std::runtime_error("Failed to create logical device! (" + failStr + ")");
     }
 
     VulkanLogicalDevice device = VulkanLogicalDevice(deviceHandle);
