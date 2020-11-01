@@ -115,7 +115,8 @@ VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(
     VkQueueFlags aQueues,
     const std::vector<const char*>& aExtensions,
     const VkPhysicalDeviceFeatures& aFeatures,
-    VkSurfaceKHR aSurface
+    VkSurfaceKHR aSurface,
+    void* aDeviceCreateInfoPnext
 ) const{
     std::set<uint32_t> queueFamilyIndices;
     if(aQueues | VK_QUEUE_GRAPHICS_BIT && mGraphicsIdx) queueFamilyIndices.emplace(*mGraphicsIdx);
@@ -150,8 +151,8 @@ VulkanLogicalDevice VulkanPhysicalDevice::createLogicalDevice(
     VkDeviceCreateInfo createInfo;
     {
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pNext = nullptr;
-        createInfo.pEnabledFeatures = &aFeatures;
+        createInfo.pNext = aDeviceCreateInfoPnext;
+        createInfo.pEnabledFeatures = (aDeviceCreateInfoPnext == nullptr) ? &aFeatures : nullptr;
         createInfo.flags = 0;
         createInfo.ppEnabledLayerNames = nullptr;
         createInfo.enabledLayerCount = 0;

@@ -95,7 +95,8 @@ class VulkanPhysicalDevice
       VkQueueFlags aQueues,
       const std::vector<const char*>& aExtensions = std::vector<const char*>(),
       const VkPhysicalDeviceFeatures& aFeatures = {},
-      VkSurfaceKHR aSurface = VK_NULL_HANDLE
+      VkSurfaceKHR aSurface = VK_NULL_HANDLE,
+      void* aDeviceCreateInfoPnext = nullptr
    ) const;
 
    VulkanLogicalDevice createLogicalDevice(
