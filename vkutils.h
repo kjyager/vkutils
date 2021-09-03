@@ -1,6 +1,6 @@
 #pragma once
-#ifndef LOAD_VULKAN_H_
-#define LOAD_VULKAN_H_
+#ifndef KJY_VK_UTILS_H_
+#define KJY_VK_UTILS_H_
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <string>
